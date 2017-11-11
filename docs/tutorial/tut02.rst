@@ -1,3 +1,5 @@
+Moved to :doc:`3-files`.
+
 Working with files
 ==================
 

@@ -242,8 +242,8 @@ The console output contains two things.
       a call, but the execution will move to the next row.
 
 
-Moving forward
-::::::::::::::
+Wrap up
+:::::::
 
 That's all for this first step.
 
@@ -255,4 +255,7 @@ You now know:
 * How to execute a job file.
 * How to read the console output.
 
-**Next: :doc:`2-jobs`**
+Next
+::::
+
+Time to jump to :doc:`2-jobs`

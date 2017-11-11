@@ -1,6 +1,6 @@
 import logging
 
-from bonobo.ext.jupyter.widget import BonoboWidget
+from bonobo.contrib.jupyter.widget import BonoboWidget
 from bonobo.plugins import Plugin
 
 try:

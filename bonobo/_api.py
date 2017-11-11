@@ -1,6 +1,27 @@
 from bonobo.execution.strategies import create_strategy
-from bonobo.nodes import CsvReader, CsvWriter, FileReader, FileWriter, Filter, JsonReader, JsonWriter, Limit, \
-    PickleReader, PickleWriter, PrettyPrinter, RateLimited, Tee, arg0_to_kwargs, count, identity, kwargs_to_arg0, noop
+from bonobo.nodes import (
+    CsvReader,
+    CsvWriter,
+    FileReader,
+    FileWriter,
+    Filter,
+    FixedWindow,
+    JsonReader,
+    JsonWriter,
+    Limit,
+    MethodCall,
+    PickleReader,
+    PickleWriter,
+    PrettyPrinter,
+    RateLimited,
+    Tee,
+    Update,
+    arg0_to_kwargs,
+    count,
+    identity,
+    kwargs_to_arg0,
+    noop,
+)
 from bonobo.nodes import LdjsonReader, LdjsonWriter
 from bonobo.structs import Bag, ErrorBag, Graph, Token
 from bonobo.util import get_name
@@ -25,8 +46,10 @@ def register_graph_api(x, __all__=__all__):
     required_parameters = {'plugins', 'services', 'strategy'}
     assert parameters[0] == 'graph', 'First parameter of a graph api function must be "graph".'
     assert required_parameters.intersection(
-        parameters) == required_parameters, 'Graph api functions must define the following parameters: ' + ', '.join(
-        sorted(required_parameters))
+        parameters
+    ) == required_parameters, 'Graph api functions must define the following parameters: ' + ', '.join(
+        sorted(required_parameters)
+    )
 
     return register_api(x, __all__=__all__)
 
@@ -74,7 +97,7 @@ def run(graph, *, plugins=None, services=None, strategy=None):
 
         if _is_jupyter_notebook():
             try:
-                from bonobo.ext.jupyter import JupyterOutputPlugin
+                from bonobo.contrib.jupyter import JupyterOutputPlugin
             except ImportError:
                 import logging
                 logging.warning(
@@ -149,16 +172,19 @@ register_api_group(
     FileReader,
     FileWriter,
     Filter,
+    FixedWindow,
     JsonReader,
     JsonWriter,
     LdjsonReader,
     LdjsonWriter,
     Limit,
+    MethodCall,
     PickleReader,
     PickleWriter,
     PrettyPrinter,
     RateLimited,
     Tee,
+    Update,
     arg0_to_kwargs,
     count,
     identity,

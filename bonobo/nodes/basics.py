@@ -4,16 +4,18 @@ import itertools
 from bonobo import settings
 from bonobo.config import Configurable, Option
 from bonobo.config.processors import ContextProcessor
+from bonobo.constants import NOT_MODIFIED
 from bonobo.structs.bags import Bag
 from bonobo.util.objects import ValueHolder
 from bonobo.util.term import CLEAR_EOL
 
-from bonobo.constants import NOT_MODIFIED
-
 __all__ = [
+    'FixedWindow',
     'Limit',
+    'MethodCall',
     'PrettyPrinter',
     'Tee',
+    'Update',
     'arg0_to_kwargs',
     'count',
     'identity',
@@ -128,3 +130,37 @@ def kwargs_to_arg0(**row):
     :return: bonobo.Bag
     """
     return Bag(row)
+
+
+def Update(*consts, **kwconsts):
+    def update(*args, **kwargs):
+        nonlocal consts, kwconsts
+        return (*args, *consts, {**kwargs, **kwconsts})
+
+    return update
+
+
+class FixedWindow(Configurable):
+    length = Option(int, positional=True)  # type: int
+
+    @ContextProcessor
+    def buffer(self, context):
+        buffer = yield ValueHolder([])
+        if len(buffer):
+            context.send(Bag(buffer.get()))
+
+    def call(self, buffer, x):
+        buffer.append(x)
+        if len(buffer) >= self.length:
+            yield buffer.get()
+            buffer.set([])
+
+
+def MethodCall(name, *args, **kwargs):
+    def method_call(obj):
+        nonlocal name, args, kwargs
+        return getattr(obj, name)(*args, **kwargs)
+
+    method_call.__name__ = 'MethodCall({})'.format(name)
+
+    return method_call
