@@ -180,7 +180,7 @@ class FixedWindow(Configurable):
     """
 
     length = Option(int, positional=True)  # type: int
-    pad = Option(bool, default=True, required=False)  # type; bool
+    pad = Option(bool, default=True, required=False)  # type: bool
     pad_value = Option(None, required=False)
 
     @ContextProcessor
