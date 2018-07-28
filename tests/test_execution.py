@@ -12,6 +12,7 @@ def generate_integers():
 def square(i):
     return i**2
 
+
 def bad_square(i):
     raise RuntimeError('Boom!')
 
@@ -98,12 +99,17 @@ def test_simple_error_context():
 
     context = GraphExecutionContext(graph)
     context.write(BEGIN, (), END)
-    context.start()
 
-    assert context.alive
-    assert context.started
+    with context:
+        assert context.alive
+        assert context.started
+        assert not context.xstatus
 
-    # How to run graph?
+        assert not context.killed
+        context.kill()
+        assert context.killed
 
-    assert context.killed
-    assert context.defunct
+        assert not context.defunct
+        context.fatal(None)
+        assert context.defunct
+        assert context.xstatus

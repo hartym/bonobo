@@ -1,16 +1,25 @@
+import logging
 from functools import partial
+from queue import Empty
 from time import sleep
 
 from bonobo.config import create_container
 from bonobo.constants import BEGIN, END
+from bonobo.errors import InactiveReadableError
 from bonobo.execution import events
-from bonobo.execution.contexts.base import Lifecycle
+from bonobo.execution.contexts.base import BaseContext
 from bonobo.execution.contexts.node import NodeExecutionContext
 from bonobo.execution.contexts.plugin import PluginExecutionContext
 from whistle import EventDispatcher
 
+logger = logging.getLogger(__name__)
 
-class GraphExecutionContext(Lifecycle):
+
+class GraphExecutionContext(BaseContext):
+    """
+    Stores the actual state of a graph execution, and manages its lifecycle.
+
+    """
     NodeExecutionContextType = NodeExecutionContext
     PluginExecutionContextType = PluginExecutionContext
 
@@ -18,26 +27,24 @@ class GraphExecutionContext(Lifecycle):
 
     @property
     def started(self):
+        if not len(self.nodes):
+            return super(GraphExecutionContext, self).started
         return any(node.started for node in self.nodes)
 
     @property
     def stopped(self):
+        if not len(self.nodes):
+            return super(GraphExecutionContext, self).stopped
         return all(node.started and node.stopped for node in self.nodes)
 
     @property
     def alive(self):
+        if not len(self.nodes):
+            return super(GraphExecutionContext, self).alive
         return any(node.alive for node in self.nodes)
 
-    @property
-    def killed(self):
-        return any(node.killed for node in self.nodes)
-
-    @property
-    def defunct(self):
-        return any(node.defunct for node in self.nodes)
-
-    def __init__(self, graph, plugins=None, services=None, dispatcher=None):
-        Lifecycle.__init__(self)
+    def __init__(self, graph, *, plugins=None, services=None, dispatcher=None):
+        super(GraphExecutionContext, self).__init__(graph)
         self.dispatcher = dispatcher or EventDispatcher()
         self.graph = graph
         self.nodes = [self.create_node_execution_context_for(node) for node in self.graph]
@@ -84,6 +91,8 @@ class GraphExecutionContext(Lifecycle):
         self.dispatcher.dispatch(name, events.ExecutionEvent(self))
 
     def start(self, starter=None):
+        super(GraphExecutionContext, self).start()
+
         self.register_plugins()
         self.dispatch(events.START)
         self.tick(pause=False)
@@ -99,13 +108,21 @@ class GraphExecutionContext(Lifecycle):
         if pause:
             sleep(self.TICK_PERIOD)
 
-    def kill(self):
-        self.dispatch(events.KILL)
-        for node_context in self.nodes:
-            node_context.kill()
-        self.tick()
+    def loop(self):
+        nodes = set(node for node in self.nodes if node.should_loop)
+        while self.should_loop and len(nodes):
+            self.tick(pause=False)
+            for node in list(nodes):
+                try:
+                    node.step()
+                except Empty:
+                    continue
+                except InactiveReadableError:
+                    nodes.discard(node)
 
     def stop(self, stopper=None):
+        super(GraphExecutionContext, self).stop()
+
         self.dispatch(events.STOP)
         for node_context in self.nodes:
             if stopper is None:
@@ -116,6 +133,14 @@ class GraphExecutionContext(Lifecycle):
         self.dispatch(events.STOPPED)
         self.unregister_plugins()
 
+    def kill(self):
+        super(GraphExecutionContext, self).kill()
+
+        self.dispatch(events.KILL)
+        for node_context in self.nodes:
+            node_context.kill()
+        self.tick()
+
     def register_plugins(self):
         for plugin_context in self.plugins:
             plugin_context.register()
@@ -123,3 +148,11 @@ class GraphExecutionContext(Lifecycle):
     def unregister_plugins(self):
         for plugin_context in self.plugins:
             plugin_context.unregister()
+
+    @property
+    def xstatus(self):
+        """
+        UNIX-like exit status, only coherent if the context has stopped.
+
+        """
+        return max((super().xstatus, *(node.xstatus for node in self.nodes)))

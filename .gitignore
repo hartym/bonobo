@@ -24,7 +24,8 @@
 .python-version
 .pytest_cache/
 /.idea
-/.medikit-pipeline
+/.medikit
+/.pytest_cache
 /.release
 /bonobo/contrib/jupyter/js/node_modules/
 /bonobo/examples/work_in_progress/
