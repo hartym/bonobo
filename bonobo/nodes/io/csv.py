@@ -95,6 +95,8 @@ class CsvReader(FileReader, CsvHandler):
 
 @use_context
 class CsvWriter(FileWriter, CsvHandler):
+    fields = Option(required=False)
+
     @Method(
         __doc__="""
             Builds the CSV writer, a.k.a an object we can pass a field collection to be written as one line in the
@@ -108,7 +110,13 @@ class CsvWriter(FileWriter, CsvHandler):
 
     def write(self, file, context, *values, fs):
         context.setdefault("lineno", 0)
-        fields = context.get_input_fields()
+
+        if self.fields is None:
+            fields = context.get_input_fields()
+        elif self.fields is False:
+            fields = None
+        else:
+            fields = ensure_tuple(self.fields)
 
         if not context.lineno:
             context.writer = self.writer_factory(file)
@@ -117,17 +125,14 @@ class CsvWriter(FileWriter, CsvHandler):
                 context.writer(fields)
                 context.lineno += 1
 
-        if fields:
-            if len(values) != len(fields):
-                raise ValueError(
-                    "Values length differs from input fields length. Expected: {}. Got: {}. Values: {!r}.".format(
-                        len(fields), len(values), values
-                    )
+        if fields and len(values) != len(fields):
+            raise ValueError(
+                "Values length differs from input fields length. Expected: {}. Got: {}. Values: {!r}.".format(
+                    len(fields), len(values), values
                 )
-            context.writer(values)
-        else:
-            for arg in values:
-                context.writer(ensure_tuple(arg))
+            )
+
+        context.writer(values)
 
         return NOT_MODIFIED
 
