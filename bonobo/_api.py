@@ -10,8 +10,13 @@ to another is maximal.
 
 """
 from bonobo.execution.strategies import create_strategy
-from bonobo.nodes import *
+from bonobo.nodes import (
+    CsvReader, CsvWriter, FileReader, FileWriter, Filter, FixedWindow, Format, JsonReader, JsonWriter, LdjsonReader,
+    LdjsonWriter, Limit, MapFields, OrderFields, PickleReader, PickleWriter, PrettyPrinter, RateLimited, Rename,
+    SetFields, Tee, UnpackItems
+)
 from bonobo.nodes import __all__ as _all_nodes
+from bonobo.nodes import count, identity, noop
 from bonobo.registry import create_reader, create_writer
 from bonobo.structs.graphs import Graph
 from bonobo.util.api import ApiHelper
@@ -179,7 +184,7 @@ def _is_interactive_console():
 
 def _is_jupyter_notebook():
     try:
-        return get_ipython().__class__.__name__ == "ZMQInteractiveShell"
+        return get_ipython().__class__.__name__ == "ZMQInteractiveShell"  # pytype: disable=name-error
     except NameError:
         return False
 

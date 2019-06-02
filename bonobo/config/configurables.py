@@ -66,7 +66,7 @@ class ConfigurableMeta(type):
 
 
 try:
-    import _functools
+    import _functools  # pytype: disable=import-error
 except ImportError:
     import functools
 
@@ -98,7 +98,7 @@ else:
         def __getattr__(self, item):
             _dict = self.func.__options_dict__
             if item in _dict:
-                return _dict[item].__get__(self, self.func)
+                return _dict[item].__get__(self, self.func)   # pytype: disable=attribute-error
             return getattr(self.func, item)
 
 

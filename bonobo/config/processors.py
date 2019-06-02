@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from functools import partial
 from inspect import signature
 
-from bonobo.config import Option
+from bonobo.config.options import Option
 from bonobo.errors import UnrecoverableTypeError
 from bonobo.util import deprecated_alias, ensure_tuple
 

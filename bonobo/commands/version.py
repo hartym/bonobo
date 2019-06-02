@@ -38,7 +38,7 @@ def _format_version(mod, *, name=None, quiet=False):
 
     args = {
         "name": name or mod.__name__,
-        "version": mod.__version__,
+        "version": mod.__version__,  # pytype: disable=attribute-error
         "location": bonobo_packages[name or mod.__name__].location,
     }
 

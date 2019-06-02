@@ -77,12 +77,12 @@ class Option:
     def __get__(self, inst, type_):
         # XXX If we call this on the type, then either return overriden value or ... ???
         if inst is None:
-            return vars(type_).get(self.name, self)
+            return vars(type_).get(self.name, self)  # pytype: disable=attribute-error
 
-        if not self.name in inst._options_values:
-            inst._options_values[self.name] = self.get_default()
+        if not self.name in inst._options_values:  # pytype: disable=attribute-error
+            inst._options_values[self.name] = self.get_default()  # pytype: disable=attribute-error
 
-        return inst._options_values[self.name]
+        return inst._options_values[self.name]  # pytype: disable=attribute-error
 
     def __set__(self, inst, value):
         inst._options_values[self.name] = self.clean(value)

@@ -19,7 +19,7 @@ def transformation_factory(f):
     return _transformation_factory
 
 
-class partial(functools.partial):
+class partial(functools.partial):  # pytype: disable=base-class-error
     @property
     def __name__(self):
         return get_name(self.func)
